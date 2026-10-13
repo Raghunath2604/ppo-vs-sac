@@ -3,7 +3,14 @@ __pycache__/
 .venv/
 .pytest_cache/
 .ruff_cache/
-runs/
-export/
+
+# Ignore temporary runs, but track preview checkpoints for demo.py and serving
+runs/*
+!runs/algos_preview/
+!runs/algos_preview/**
+
+# Ignore arbitrary weights, but whitelist demo models and TorchScript artifacts
 *.pt
 *.ts
+!runs/algos_preview/**/model.pt
+!export/**/policy.ts

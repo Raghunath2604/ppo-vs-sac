@@ -1,0 +1,6 @@
+{
+  "algo": "ppo",
+  "env_id": "HalfCheetah-v5",
+  "obs_dim": 17,
+  "act_dim": 6
+}
