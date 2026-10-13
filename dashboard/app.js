@@ -547,53 +547,79 @@ function initLiveInspector() {
     const pitch = parseFloat(sPitch.value);
     const joint = parseFloat(sJoint.value);
 
-    // Dynamic action output simulation mirroring network forward pass
-    const velocityError = vTarget - vx;
-    const baseAction = Math.tanh(velocityError * 0.45 - pitch * 0.3);
+    // Render action bars helper
+    function renderActions(actionsList, isLive = false, liveMs = 0) {
+      actionBars.innerHTML = actionsList.map((a, i) => {
+        const pct = Math.abs(a) * 50; // 0% to 50% from center
+        const isPos = a >= 0;
+        const left = isPos ? "50%" : `${50 - pct}%`;
+        const color = isPos ? "#10b981" : "#ec4899";
 
-    const actions = jointNames.map((name, i) => {
-      let a = baseAction;
-      if (i % 2 === 0) a += Math.sin(joint * 0.5 + i) * 0.25;
-      else a -= Math.cos(joint * 0.5 + i) * 0.2;
-      
-      // Algorithm specific behavioral variance
-      if (algo === "td3") a = Math.max(-1, Math.min(1, a * 1.05));
-      if (algo === "sac") a = Math.max(-1, Math.min(1, a * 0.95));
-      return Math.max(-1, Math.min(1, a));
-    });
+        return `
+          <div class="action-bar-row">
+            <span class="mono">${jointNames[i]}</span>
+            <div class="action-track">
+              <div class="action-fill" style="left: ${left}; width: ${pct}%; background: ${color};"></div>
+            </div>
+            <span class="mono" style="text-align: right; color: ${color};">${a.toFixed(2)}</span>
+          </div>
+        `;
+      }).join("");
 
-    // Update specs
-    if (algo === "ppo") {
-      latencyDisplay.textContent = "0.38 ms (CPU TorchScript + Normalizer)";
-      normDisplay.textContent = "Running Normalization Active";
-    } else if (algo === "sac") {
-      latencyDisplay.textContent = "0.45 ms (Squashed Gaussian actor_mean)";
-      normDisplay.textContent = "Identity Pass-Through (Raw Observation)";
-    } else {
-      latencyDisplay.textContent = "0.32 ms (Deterministic Actor MLP)";
-      normDisplay.textContent = "Identity Pass-Through (Raw Observation)";
+      if (isLive) {
+        latencyDisplay.innerHTML = `<span style="color:#10b981;font-weight:600;">LIVE API: ${liveMs.toFixed(2)} ms</span>`;
+      } else {
+        if (algo === "ppo") {
+          latencyDisplay.textContent = "1.34 ms (TorchScript + Running Norm)";
+          normDisplay.textContent = "Running Normalization Active";
+        } else if (algo === "sac") {
+          latencyDisplay.textContent = "6.67 ms (Squashed Gaussian actor_mean)";
+          normDisplay.textContent = "Identity Pass-Through (Raw Observation)";
+        } else {
+          latencyDisplay.textContent = "0.92 ms (Deterministic Actor MLP)";
+          normDisplay.textContent = "Identity Pass-Through (Raw Observation)";
+        }
+      }
     }
 
-    // Render action bars
-    actionBars.innerHTML = actions.map((a, i) => {
-      const pct = Math.abs(a) * 50; // 0% to 50% from center
-      const isPos = a >= 0;
-      const left = isPos ? "50%" : `${50 - pct}%`;
-      const color = isPos ? "#10b981" : "#ec4899";
-
-      return `
-        <div class="action-bar-row">
-          <span class="mono">${jointNames[i]}</span>
-          <div class="action-track">
-            <div class="action-fill" style="left: ${left}; width: ${pct}%; background: ${color};"></div>
-          </div>
-          <span class="mono" style="text-align: right; color: ${color};">${a.toFixed(2)}</span>
-        </div>
-      `;
-    }).join("");
+    // Try Live API first if running on localhost:8000
+    const rawObs = [0, vx, pitch, joint, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    fetch("http://localhost:8000/act", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ observation: rawObs })
+    })
+    .then(res => res.ok ? res.json() : Promise.reject())
+    .then(data => {
+      if (data && data.action && data.action.length >= 6) {
+        renderActions(data.action.slice(0, 6), true, data.latency_ms);
+      } else {
+        throw new Error("fallback");
+      }
+    })
+    .catch(() => {
+      // Offline fallback simulation mirroring network response
+      const velocityError = vTarget - vx;
+      const baseAction = Math.tanh(velocityError * 0.45 - pitch * 0.3);
+      const simulatedActions = jointNames.map((name, i) => {
+        let a = baseAction;
+        if (i % 2 === 0) a += Math.sin(joint * 0.5 + i) * 0.25;
+        else a -= Math.cos(joint * 0.5 + i) * 0.2;
+        if (algo === "td3") a = Math.max(-1, Math.min(1, a * 1.05));
+        if (algo === "sac") a = Math.max(-1, Math.min(1, a * 0.95));
+        return Math.max(-1, Math.min(1, a));
+      });
+      renderActions(simulatedActions, false);
+    });
   }
 
-  [sVtarget, sVx, sPitch, sJoint, selectAlgo].forEach(el => el.addEventListener("input", update));
+  selectAlgo.addEventListener("change", () => {
+    fetch(`http://localhost:8000/switch?algo=${selectAlgo.value}`, { method: "POST" })
+      .catch(() => {})
+      .finally(update);
+  });
+
+  [sVtarget, sVx, sPitch, sJoint].forEach(el => el.addEventListener("input", update));
 
   document.getElementById("btn-sample-obs")?.addEventListener("click", () => {
     sVx.value = (Math.random() * 5.0).toFixed(1);
