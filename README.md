@@ -25,7 +25,49 @@ Reinforcement learning algorithms are routinely ranked solely by learning curves
 
 This project delivers a **rigorous, reproducible benchmarking instrument** and **from-scratch implementations** of PPO, SAC, and TD3 in PyTorch. It features first-class wall-clock time profiling, explicit handling of censored statistical metrics (reporting completion counts and arrival medians), a velocity-conditioned multi-task locomotion study on MuJoCo `HalfCheetah-v5`, a unified TorchScript export contract, a production FastAPI inference microservice, and an interactive analytics web dashboard.
 
+<p align="center">
+  <img src="assets/halfcheetah_demo.gif" width="65%" alt="HalfCheetah Continuous Control Demonstration" />
+  <br>
+  <em>Trained SAC Policy executing continuous torque control on HalfCheetah-v5 with real-time velocity tracking telemetry.</em>
+</p>
+
 ---
+
+## ⚡ Instant Live Demonstration (`demo.py`)
+
+Run an instant, zero-configuration policy simulation and multi-algorithm benchmark directly from your terminal:
+
+```bash
+# 1. Run live simulation with real-time ASCII telemetry table
+python demo.py --algo sac --target 2.5 --steps 200
+
+# 2. Side-by-side benchmark comparing SAC vs TD3 vs PPO inference latency and actions
+python demo.py --compare
+
+# 3. Render and save an animated simulation GIF
+python demo.py --algo td3 --gif assets/td3_demo.gif --steps 100
+```
+
+#### Terminal Telemetry Output
+```text
+==============================================================================
+   PPO vs SAC vs TD3: Empirical RL Continuous Control Live Demonstration
+==============================================================================
+[+] Loading SAC checkpoint: runs/algos_preview/sac/seed_1/model.pt
+[+] Environment: HalfCheetah-v5 | Target Velocity: 2.50 m/s | Steps: 200
+------------------------------------------------------------------------------
+  Step |   Velocity |   Target |    Error |    Reward | Action Norm |   Latency
+------------------------------------------------------------------------------
+     1 |      0.78m/s |    2.50m/s |    1.72m/s |     -2.13 |        2.03 |    3.48ms
+    20 |      0.68m/s |    2.50m/s |    1.82m/s |     -2.10 |        1.68 |    0.45ms
+    40 |      0.13m/s |    2.50m/s |    2.37m/s |     -2.49 |        1.07 |    0.23ms
+    60 |      0.58m/s |    2.50m/s |    1.92m/s |     -2.24 |        1.79 |    0.31ms
+...
+------------------------------------------------------------------------------
+[Summary] Mean Velocity: 0.60 m/s | Mean Tracking Error: 1.90 m/s
+[Summary] Cumulative Reward: -221.59 | Avg Step Latency: 0.538 ms
+------------------------------------------------------------------------------
+```
 
 ## Key System Architecture
 
