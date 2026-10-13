@@ -8,6 +8,7 @@
 [![Tests Passing](https://img.shields.io/badge/tests-59%2F59%20passed%20(100%25)-success.svg)](tests/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FRaghunath2604%2Fppo-vs-sac)
 
 **Author:** Raghunathareddy GR  
 **Affiliation:** Department of Artificial Intelligence and Machine Learning, REVA University, Bengaluru, India  
@@ -184,10 +185,20 @@ A glassmorphic analytics dashboard is bundled in [`dashboard/`](dashboard/) and 
 - **Multi-Task Transfer Matrix:** Interactive velocity-target heatmap with out-of-distribution transfer analysis.
 - **Live Policy Sandbox:** Direct connection to the running FastAPI microservice on port 8000, streaming real continuous actions across 6 joint channels with real-time latency indicators.
 
-To run the dashboard:
+#### Run Locally
 ```bash
 python -m http.server 8089 --directory dashboard
+# Open in browser: http://localhost:8089
 ```
+
+#### Deploy Live on Vercel
+Deploy the dashboard to Vercel with zero configuration:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FRaghunath2604%2Fppo-vs-sac)
+
+1. Import `https://github.com/Raghunath2604/ppo-vs-sac` into your [Vercel Dashboard](https://vercel.com/new).
+2. The included [`vercel.json`](vercel.json) configures `"outputDirectory": "dashboard"` and security headers automatically.
+3. Click **Deploy** — your live dashboard will be online in ~10 seconds.
 
 ---
 
