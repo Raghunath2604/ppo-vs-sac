@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPO vs SAC vs TD3 | Empirical Sample Efficiency, Cost Profiling & Multi-Task Benchmark</title>
+  <meta name="description" content="Interactive research dashboard comparing PPO, SAC, and TD3 deep reinforcement learning algorithms across sample efficiency, wall-clock cost, stability, and multi-task learning.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="navbar" id="main-header">
+    <div class="nav-container">
+      <div class="brand">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">PPO <span class="vs">vs</span> SAC <span class="vs">vs</span> TD3</span>
+          <span class="brand-subtitle">Empirical Comparison Harness & Multi-Task Benchmark</span>
+        </div>
+      </div>
+      <nav class="nav-links">
+        <a href="#overview" class="nav-link active">Overview</a>
+        <a href="#speedtest" class="nav-link">Cost Profiler</a>
+        <a href="#benchmarks" class="nav-link">Study A (Algorithms)</a>
+        <a href="#multitask" class="nav-link">Study B (Multi-Task)</a>
+        <a href="#inspector" class="nav-link">Live Inspector</a>
+        <a href="#theory" class="nav-link">Theory & PRD</a>
+      </nav>
+      <div class="header-badges">
+        <span class="badge badge-success" id="badge-tests">✓ 59/59 Tests Pass</span>
+        <span class="badge badge-accent">CPU-Only PyTorch</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero / Executive Summary -->
+  <main class="main-content">
+    <section class="hero-section" id="overview">
+      <div class="hero-header">
+        <div class="tag-row">
+          <span class="tag tag-primary">Department of AI & Machine Learning, REVA University</span>
+          <span class="tag tag-secondary">October 2026 Technical Report</span>
+          <span class="tag tag-info">Package: algo_compare</span>
+        </div>
+        <h1 class="hero-title">Sample Efficiency, Stability and Wall-Clock Cost in Continuous Control</h1>
+        <p class="hero-desc">
+          A principled, reproducible comparison separating <strong>environment data hunger</strong> from <strong>compute expenditure</strong>. Built with from-scratch PyTorch implementations of PPO, SAC, and TD3, strict replay buffer terminal semantics, unified wall-clock profiling, and a velocity-conditioned HalfCheetah multi-task study.
+        </p>
+      </div>
+
+      <!-- Quick Metrics Grid -->
+      <div class="stat-grid" id="stat-cards">
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Automated Verification</span>
+            <span class="stat-icon icon-success">✓</span>
+          </div>
+          <div class="stat-value">59 / 59</div>
+          <div class="stat-sub">100% unit & property tests passing</div>
+          <div class="stat-footer">Analytical bounds, soft update, terminal bootstrap</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Gradient Update Share</span>
+            <span class="stat-icon icon-warning">⚡</span>
+          </div>
+          <div class="stat-value">92% <span class="unit">vs 43%</span></div>
+          <div class="stat-sub">SAC/TD3 vs PPO compute time</div>
+          <div class="stat-footer">Off-policy dominated by dual-critic backprop</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Measured Host Speed</span>
+            <span class="stat-icon icon-accent">⏱</span>
+          </div>
+          <div class="stat-value">148 <span class="unit">vs 27 SPS</span></div>
+          <div class="stat-sub">PPO vs SAC step throughput</div>
+          <div class="stat-footer">PPO is 5.5× cheaper in CPU wall-clock per step</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Known Benchmark Validation</span>
+            <span class="stat-icon icon-primary">🎯</span>
+          </div>
+          <div class="stat-value">-145 <span class="unit">/ -165</span></div>
+          <div class="stat-sub">SAC (8k steps) / TD3 (10k steps)</div>
+          <div class="stat-footer">Pendulum-v1 swing-up solved with default nets</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Machine Speedtest & Profiling -->
+    <section class="section-card" id="speedtest">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Machine Speedtest: Where the Time Goes</h2>
+          <p class="section-subtitle">
+            Measuring acting ($t_{\text{rollout}}$) vs gradient backpropagation ($t_{\text{update}}$) directly on host hardware
+          </p>
+        </div>
+        <div class="control-group">
+          <button class="btn btn-sm active" id="btn-show-pilot">InvertedPendulum Pilot (20k)</button>
+          <button class="btn btn-sm" id="btn-show-timing">5k HalfCheetah Timing</button>
+        </div>
+      </div>
+
+      <div class="grid-2col">
+        <!-- Visual Profile Bar Chart -->
+        <div class="card card-inner">
+          <h3 class="card-title">Compute Attribution Profile (Seconds / 1k Steps)</h3>
+          <div class="chart-container" style="height: 300px;">
+            <canvas id="profileChart"></canvas>
+          </div>
+          <div class="chart-caption" id="profile-caption">
+            *Off-policy methods (SAC & TD3) spend ~92% of runtime backpropagating twin critics. PPO spends 57% of time executing simulator dynamics and acting.
+          </div>
+        </div>
+
+        <!-- Metric Breakdown Table -->
+        <div class="card card-inner">
+          <h3 class="card-title">Empirical Throughput & Cost Summary</h3>
+          <div class="table-responsive">
+            <table class="data-table" id="table-speedtest">
+              <thead>
+                <tr>
+                  <th>Algorithm</th>
+                  <th>Throughput</th>
+                  <th>Wall Time</th>
+                  <th>Rollout %</th>
+                  <th>Update %</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="pill pill-ppo">PPO</span></td>
+                  <td><strong>147.6 SPS</strong></td>
+                  <td>2.08 min</td>
+                  <td>56.8%</td>
+                  <td><strong>43.2%</strong></td>
+                </tr>
+                <tr>
+                  <td><span class="pill pill-sac">SAC</span></td>
+                  <td><strong>27.0 SPS</strong></td>
+                  <td>12.36 min</td>
+                  <td>7.9%</td>
+                  <td><strong>92.1%</strong></td>
+                </tr>
+                <tr>
+                  <td><span class="pill pill-td3">TD3</span></td>
+                  <td><strong>43.7 SPS</strong></td>
+                  <td>7.63 min</td>
+                  <td>7.8%</td>
+                  <td><strong>92.2%</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout callout-info" style="margin-top: 1rem;">
+            <strong>Core Insight:</strong> TD3 runs 1.62× faster than SAC in wall-clock time because its delayed actor updates ($k=2$) update policy weights every second critic step, and it avoids the dual entropy temperature (&alpha;) optimization step.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Study A Algorithms Benchmark -->
+    <section class="section-card" id="benchmarks">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Study A: Sample Efficiency vs Wall-Clock Cost</h2>
+          <p class="section-subtitle">
+            Evaluating the fundamental trade-off under three legitimate budget framings
+          </p>
+        </div>
+        <div class="budget-toggle-group">
+          <span class="toggle-label">Budget Axis:</span>
+          <button class="budget-btn active" data-axis="steps" id="axis-steps">Environment Steps</button>
+          <button class="budget-btn" data-axis="wall" id="axis-wall">Wall-Clock Time</button>
+          <button class="budget-btn" data-axis="updates" id="axis-updates">Gradient Updates</button>
+        </div>
+      </div>
+
+      <!-- Main Learning Curve Canvas -->
+      <div class="curve-display-card">
+        <div class="curve-controls">
+          <div class="curve-legend">
+            <span class="legend-item"><span class="legend-color ppo"></span> PPO (On-Policy)</span>
+            <span class="legend-item"><span class="legend-color sac"></span> SAC (Max-Entropy Off-Policy)</span>
+            <span class="legend-item"><span class="legend-color td3"></span> TD3 (Deterministic Off-Policy)</span>
+            <span class="legend-item"><span class="legend-color threshold"></span> Threshold &theta; (80% improvement)</span>
+          </div>
+          <div class="shading-toggle">
+            <label><input type="checkbox" id="toggle-ci" checked> Show 95% Confidence Band</label>
+          </div>
+        </div>
+        <div class="chart-container" style="height: 380px;">
+          <canvas id="curveChart"></canvas>
+        </div>
+        <div class="curve-footnote" id="curve-footnote">
+          Viewing episodic smoothed return (mean of last 10 episodes) plotted against <strong>cumulative environment steps</strong>.
+        </div>
+      </div>
+
+      <!-- Detailed Summary Table -->
+      <div class="summary-table-section">
+        <h3 class="card-title">Study A Summary Table (Statistical Evaluation)</h3>
+        <div class="table-responsive">
+          <table class="data-table" id="table-summary-algos">
+            <thead>
+              <tr>
+                <th>Variant</th>
+                <th>Seeds</th>
+                <th>Final Return (last 10%)</th>
+                <th>AUC (Learning Speed)</th>
+                <th>Stability (&sigma; last 20%)</th>
+                <th>Reached &theta;</th>
+                <th>Median Steps to &theta;</th>
+                <th>&Delta; vs PPO</th>
+                <th>Welch p</th>
+              </tr>
+            </thead>
+            <tbody id="summary-algos-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Study B Multi-Task Study -->
+    <section class="section-card" id="multitask">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Study B: Velocity-Conditioned Multi-Task Benchmark</h2>
+          <p class="section-subtitle">
+            Can one policy told the target velocity match dedicated specialists?
+          </p>
+        </div>
+        <div class="task-selector">
+          <span class="toggle-label">Evaluate Target:</span>
+          <button class="task-btn active" data-target="all">All Targets Matrix</button>
+          <button class="task-btn" data-target="1.0">v* = 1.0 m/s</button>
+          <button class="task-btn" data-target="2.5">v* = 2.5 m/s</button>
+          <button class="task-btn" data-target="4.0">v* = 4.0 m/s</button>
+        </div>
+      </div>
+
+      <div class="grid-2col">
+        <!-- Transfer Heatmap -->
+        <div class="card card-inner">
+          <h3 class="card-title">Cross-Task Evaluation Matrix (Return & Heatmap)</h3>
+          <div class="matrix-grid" id="matrix-container">
+            <!-- Heatmap table rendered via JS -->
+          </div>
+          <div class="chart-caption">
+            *Returns are negative: reward = -|v_x - v*| + r_ctrl. Values closer to 0 indicate superior tracking.
+          </div>
+        </div>
+
+        <!-- Hypotheses Findings B1-B3 -->
+        <div class="card card-inner">
+          <h3 class="card-title">Empirical Findings on Multi-Task Hypotheses</h3>
+          <div class="findings-list">
+            <div class="finding-item">
+              <span class="finding-badge badge-support">Hypothesis B1 (Interference)</span>
+              <p>Under equal per-run environment budgets, conditioned policies (&pi;(a|s, v*)) exhibit slight representational sharing loss relative to unconditioned specialists trained strictly on target i.</p>
+            </div>
+            <div class="finding-item">
+              <span class="finding-badge badge-support">Hypothesis B2 (Specialist Specificity)</span>
+              <p>Specialists severely degrade when evaluated zero-shot on other targets (e.g. specialist trained on 1.0 m/s performs poorly at 4.0 m/s), proving high task specificity.</p>
+            </div>
+            <div class="finding-item">
+              <span class="finding-badge badge-neutral">Hypothesis B3 (PPO vs SAC Multi-Task Gap)</span>
+              <p>SAC's replay buffer retains multi-modal transition mixtures across velocities, requiring sufficient capacity and warm-up to prevent value gradient interference.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Live Policy Inspector & Serving Playground -->
+    <section class="section-card" id="inspector">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Live Model Inspector & Inference Playground</h2>
+          <p class="section-subtitle">
+            Simulate policy forward inference through the unified TorchScript deployment contract
+          </p>
+        </div>
+        <div class="model-picker">
+          <label for="select-algo">Algorithm:</label>
+          <select id="select-algo" class="form-select">
+            <option value="sac">Soft Actor-Critic (SAC)</option>
+            <option value="td3">Twin Delayed DDPG (TD3)</option>
+            <option value="ppo">Proximal Policy Optimization (PPO)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="inspector-grid">
+        <!-- Input State Controller -->
+        <div class="card card-inner">
+          <h3 class="card-title">Simulated Observation Vector (s &isin; &reals;<sup>17</sup> + v*)</h3>
+          <div class="slider-row">
+            <label>Target Velocity (v*): <span id="val-vtarget" class="mono">2.50 m/s</span></label>
+            <input type="range" id="slider-vtarget" min="0.5" max="5.0" step="0.1" value="2.5" class="slider">
+          </div>
+          <div class="slider-row">
+            <label>Current Forward Velocity (v<sub>x</sub>): <span id="val-vx" class="mono">1.20 m/s</span></label>
+            <input type="range" id="slider-vx" min="-1.0" max="6.0" step="0.1" value="1.2" class="slider">
+          </div>
+          <div class="slider-row">
+            <label>Root Pitch Angle (&theta;): <span id="val-pitch" class="mono">0.05 rad</span></label>
+            <input type="range" id="slider-pitch" min="-0.8" max="0.8" step="0.02" value="0.05" class="slider">
+          </div>
+          <div class="slider-row">
+            <label>Back Thigh Joint Velocity: <span id="val-joint" class="mono">0.40 rad/s</span></label>
+            <input type="range" id="slider-joint" min="-3.0" max="3.0" step="0.1" value="0.4" class="slider">
+          </div>
+          <div class="action-btn-row">
+            <button class="btn btn-primary" id="btn-sample-obs">Randomize Remaining 14 State Dims</button>
+            <button class="btn btn-secondary" id="btn-reset-obs">Reset Standard Posture</button>
+          </div>
+        </div>
+
+        <!-- Output Action & Deployment Diagnostics -->
+        <div class="card card-inner">
+          <h3 class="card-title">Deterministic Policy Output (a = &mu;(s) &isin; [-1, 1]<sup>6</sup>)</h3>
+          <div class="action-bars-container" id="action-bars">
+            <!-- Rendered by JS -->
+          </div>
+          <div class="deploy-specs">
+            <div class="spec-row">
+              <span class="spec-label">Unified API Endpoint:</span>
+              <span class="spec-val mono">POST /act &bull; GET /health</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Input Shape:</span>
+              <span class="spec-val mono">17 floats (specialist) / 18 floats (conditioned)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Simulated Latency:</span>
+              <span class="spec-val mono" id="sim-latency">0.42 ms (CPU TorchScript)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Normalization Mode:</span>
+              <span class="spec-val mono" id="sim-norm">Identity Pass-Through (SAC/TD3)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 6: Theoretical Foundation & PRD Requirements -->
+    <section class="section-card" id="theory">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Theoretical Foundations & PRD Requirements</h2>
+          <p class="section-subtitle">
+            Critical algorithmic mechanics verified in this codebase
+          </p>
+        </div>
+      </div>
+
+      <div class="theory-grid">
+        <div class="theory-card">
+          <div class="theory-num">01</div>
+          <h3 class="theory-title">Termination vs. Truncation in Experience Replay</h3>
+          <p class="theory-body">
+            Transitions cut short by the simulation time limit (<em>truncation</em>) retain valid continuation value. Storing done = (terminated &or; truncated) would falsely zero-out bootstrap targets:
+          </p>
+          <div class="formula-box mono">
+            y = r + &gamma; (1 - terminated) &middot; Q_target(s', a')
+          </div>
+          <p class="theory-body">
+            Our replay buffer stores only <code>terminated</code> as the bootstrap inhibitor and guarantees insertion of the true next observation prior to environment reset.
+          </p>
+        </div>
+
+        <div class="theory-card">
+          <div class="theory-num">02</div>
+          <h3 class="theory-title">SAC Squashed Gaussian Entropy Auto-Tuning</h3>
+          <p class="theory-body">
+            SAC squashes unbounded Gaussian action samples via <code>tanh</code> and applies a change-of-variables Jacobian correction to log-probabilities. Temperature &alpha; is dual-optimized to maintain target entropy:
+          </p>
+          <div class="formula-box mono">
+            L_&alpha; = -log(&alpha;) &middot; [log &pi;(a|s) + H_target]
+          </div>
+          <p class="theory-body">
+            Target entropy H_target is set canonically to -&dim;(A).
+          </p>
+        </div>
+
+        <div class="theory-card">
+          <div class="theory-num">03</div>
+          <h3 class="theory-title">TD3 Target Policy Smoothing & Delay</h3>
+          <p class="theory-body">
+            TD3 enforces deterministic actor optimization. To prevent critic value peaks around policy approximations, clipped Gaussian noise is injected into target actions, and actor weight updates are delayed (k = 2):
+          </p>
+          <div class="formula-box mono">
+            a' = clip(&pi;_targ(s') + clip(&epsilon;, -c, c), a_min, a_max)
+          </div>
+          <p class="theory-body">
+            Actor loss -E[Q1(s, &pi;(s))] executes strictly on even critic iterations.
+          </p>
+        </div>
+
+        <div class="theory-card">
+          <div class="theory-num">04</div>
+          <h3 class="theory-title">Honest Handling of Censored Thresholds</h3>
+          <p class="theory-body">
+            In standard benchmarks, runs failing to reach a threshold &theta; are frequently dropped or averaged as N_max, biasing sample efficiency claims.
+          </p>
+          <div class="formula-box mono">
+            reached_threshold = k / n &bull; median(steps | reached)
+          </div>
+          <p class="theory-body">
+            Our reporting module records exact seed arrival counts (k/n) and calculates medians solely over seeds that verified arrival.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div>
+        <strong>PPO vs SAC vs TD3 Harness</strong> &bull; Technical Report & Empirical Artifacts
+      </div>
+      <div>
+        Designed & Tested by Raghunathareddy GR &bull; REVA University, Bengaluru
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

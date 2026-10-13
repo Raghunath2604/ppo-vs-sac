@@ -1,0 +1,12 @@
+# Minimal install (see requirements-tested.txt for the exact versions this was tested with)
+torch>=2.2
+gymnasium[mujoco]>=1.0
+numpy
+pandas
+scipy
+matplotlib
+fastapi
+uvicorn
+pytest
+ruff
+httpx
