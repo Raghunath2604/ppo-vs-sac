@@ -151,11 +151,13 @@ def build_pdf(out_path="docs/technical_report.pdf"):
     )
     abs_table = Table([[Paragraph(abs_text, abstract_style)]], colWidths=[530])
     abs_table.setStyle(
-        TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fafc")),
-            ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#cbd5e1")),
-            ("PADDING", (0, 0), (-1, -1), 6),
-        ])
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fafc")),
+                ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#cbd5e1")),
+                ("PADDING", (0, 0), (-1, -1), 6),
+            ]
+        )
     )
     elements.append(abs_table)
     elements.append(Spacer(1, 8))
@@ -232,12 +234,14 @@ def build_pdf(out_path="docs/technical_report.pdf"):
     ]
     t1 = Table(t1_data, colWidths=[65, 115, 65, 75, 65, 55, 65])
     t1.setStyle(
-        TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1e3a8a")),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
-            ("PADDING", (0, 0), (-1, -1), 4),
-        ])
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1e3a8a")),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
+                ("PADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
     )
     elements.append(t1)
     elements.append(Spacer(1, 8))
@@ -248,11 +252,13 @@ def build_pdf(out_path="docs/technical_report.pdf"):
         img2 = Image("results/algos_preview/profile.png", width=260, height=130)
         plot_table = Table([[img1, img2]], colWidths=[265, 265])
         plot_table.setStyle(
-            TableStyle([
-                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("PADDING", (0, 0), (-1, -1), 0),
-            ])
+            TableStyle(
+                [
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("PADDING", (0, 0), (-1, -1), 0),
+                ]
+            )
         )
         elements.append(plot_table)
         fig_caption = (
@@ -305,12 +311,14 @@ def build_pdf(out_path="docs/technical_report.pdf"):
     ]
     t2 = Table(t2_data, colWidths=[70, 95, 95, 95, 175])
     t2.setStyle(
-        TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f766e")),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
-            ("PADDING", (0, 0), (-1, -1), 4),
-        ])
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f766e")),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
+                ("PADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
     )
     elements.append(t2)
     elements.append(Spacer(1, 8))

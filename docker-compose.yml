@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  # Low-latency policy inference microservice
+  api:
+    build: .
+    container_name: ppo-vs-sac-api
+    command: >
+      python -m uvicorn --factory algo_compare.serve:create_app --host 0.0.0.0 --port 8000
+    environment:
+      - PPO_MODEL_PATH=runs/algos_preview/sac/seed_1/model.pt
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./runs:/app/runs:ro
+    restart: unless-stopped
+
+  # Analytics web dashboard
+  dashboard:
+    image: python:3.11-alpine
+    container_name: ppo-vs-sac-dashboard
+    working_dir: /app/dashboard
+    command: python -m http.server 8089
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./dashboard:/app/dashboard:ro
+    depends_on:
+      - api
+    restart: unless-stopped

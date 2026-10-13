@@ -186,21 +186,22 @@ def compare_all(iters: int = 100) -> None:
                     act = agent.act_deterministic(t_obs).numpy()[0]
                 times.append((time.perf_counter() - t0) * 1000.0)
 
-            results.append({
-                "algo": algo.upper(),
-                "params": param_count,
-                "latency_mean": np.mean(times),
-                "latency_p95": np.percentile(times, 95),
-                "action_sample": np.round(act[:3], 3),
-                "path": path,
-            })
+            results.append(
+                {
+                    "algo": algo.upper(),
+                    "params": param_count,
+                    "latency_mean": np.mean(times),
+                    "latency_p95": np.percentile(times, 95),
+                    "action_sample": np.round(act[:3], 3),
+                    "path": path,
+                }
+            )
         except Exception as e:
             results.append({"algo": algo.upper(), "error": str(e)})
 
     print("\n" + "-" * 78)
     print(
-        f"{'Algorithm':<10} | {'Parameters':<12} | "
-        f"{'Mean Latency':<12} | {'P95 Latency':<12} | {'First 3 Actions':<16}"
+        f"{'Algorithm':<10} | {'Parameters':<12} | {'Mean Latency':<12} | {'P95 Latency':<12} | {'First 3 Actions':<16}"
     )
     print("-" * 78)
     for r in results:

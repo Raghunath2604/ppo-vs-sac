@@ -53,11 +53,26 @@ export:
 serve:
 	PPO_MODEL_PATH=$(MODEL) $(PY) -m uvicorn --factory algo_compare.serve:create_app --host 0.0.0.0 --port 8000
 
-docker-build:
-	docker build -t ppo-vs-sac .
+demo:
+	$(PY) demo.py --algo sac --target 2.5 --steps 200
 
-docker-train:
-	docker run --rm -v $(PWD)/runs:/app/runs ppo-vs-sac python -m algo_compare.train --env-id InvertedPendulum-v5 --total-timesteps 40960 --log-dir runs/docker_smoke
+demo-compare:
+	$(PY) demo.py --compare
+
+dashboard:
+	$(PY) -m http.server 8089 --directory dashboard
+
+pdf:
+	$(PY) scripts/build_paper_pdf.py
+
+diagram:
+	$(PY) scripts/generate_architecture_diagram.py
+
+docker-up:
+	docker compose up -d
+
+docker-down:
+	docker compose down
 
 clean:
 	rm -rf runs results export .pytest_cache .ruff_cache
