@@ -6,14 +6,16 @@
 [![Gymnasium 1.4](https://img.shields.io/badge/Gymnasium-1.4.0-008080.svg)](https://gymnasium.farama.org/)
 [![MuJoCo 3.15](https://img.shields.io/badge/MuJoCo-3.15.0-black.svg)](https://mujoco.org/)
 [![Tests Passing](https://img.shields.io/badge/tests-59%2F59%20passed%20(100%25)-success.svg)](tests/)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Technical Report](https://img.shields.io/badge/paper-Technical%20Report%20(PDF)-8A2BE2.svg)](docs/technical_report.pdf)
+[![LaTeX Preprint](https://img.shields.io/badge/LaTeX-IEEE%20Preprint-blue.svg)](paper/paper.tex)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FRaghunath2604%2Fppo-vs-sac)
 
 **Author:** Raghunathareddy GR  
 **Affiliation:** Department of Artificial Intelligence and Machine Learning, REVA University, Bengaluru, India  
 **Software Package:** `ppo-vs-sac` (Python package `algo_compare`)  
-**Repository:** [https://github.com/Raghunath2604/ppo-vs-sac.git](https://github.com/Raghunath2604/ppo-vs-sac.git)
+**Repository:** [https://github.com/Raghunath2604/ppo-vs-sac.git](https://github.com/Raghunath2604/ppo-vs-sac.git)  
+**Publications:** [Technical Report (PDF)](docs/technical_report.pdf) &bull; [IEEE LaTeX Preprint](paper/paper.tex) &bull; [Citation Metadata](CITATION.cff)
 
 ---
 
@@ -329,3 +331,29 @@ python -m algo_compare.task_eval --report results/mt_hc/task_eval.csv --out resu
 5. F. Pardo et al., "Time Limits in Reinforcement Learning," ICML, 2018.
 6. P. Henderson et al., "Deep Reinforcement Learning that Matters," AAAI, 2018.
 7. R. Agarwal et al., "Deep Reinforcement Learning at the Edge of the Statistical Precipice," NeurIPS, 2021.
+
+---
+
+## Technical Report & Citation
+
+If you use this benchmark harness, mathematical implementations, or empirical findings in your research or applications, please cite our technical report:
+
+### BibTeX
+```bibtex
+@article{raghunathareddy2026ppo_vs_sac,
+  title={Sample Efficiency, Stability, and Cost of PPO, SAC, and TD3: From-Scratch Implementations, a Reproducible Comparison Harness, and a Multi-Task Study},
+  author={Raghunathareddy, G. R.},
+  journal={Technical Report, Department of Artificial Intelligence and Machine Learning, REVA University},
+  year={2026},
+  month={October},
+  url={https://github.com/Raghunath2604/ppo-vs-sac}
+}
+```
+
+You can also use GitHub's native **"Cite this repository"** dropdown in the right-hand repository sidebar, powered by [`CITATION.cff`](CITATION.cff).
+
+### Paper Artifacts
+- **Compiled Technical Report (PDF):** [`docs/technical_report.pdf`](docs/technical_report.pdf) *(2-page publication paper with embedded empirical figures, statistical tables, and mathematical derivations)*
+- **IEEE LaTeX Preprint Source:** [`paper/paper.tex`](paper/paper.tex) *(Complete IEEEtran compsoc conference/transactions format)*
+- **PDF Compilation Script:** Run `python scripts/build_paper_pdf.py` to compile the publication PDF report.
+
