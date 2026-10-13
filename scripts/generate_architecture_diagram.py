@@ -1,0 +1,322 @@
+#!/usr/bin/env python3
+"""Generate a publication-grade vector SVG architecture diagram for the repository."""
+
+import os
+
+
+def generate_svg(out_path="assets/system_architecture.svg"):
+    """Generate dark-mode publication system architecture diagram."""
+    os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
+
+    header_font = "font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;"
+    svg_chunks = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" width="100%" height="100%" '
+        f'style="background:#090d16; {header_font}">\n',
+        """  <defs>
+    <!-- Gradients -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0f1d"/>
+      <stop offset="100%" stop-color="#060911"/>
+    </linearGradient>
+    <linearGradient id="envGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#0369a1" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="algoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="benchGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#047857" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="deployGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d97706" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#b45309" stop-opacity="0.05"/>
+    </linearGradient>
+
+    <!-- Card Glow Filter -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+
+    <!-- Marker Arrow -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6"
+            markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6"
+            markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#38bdf8"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6"
+            markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#a855f7"/>
+    </marker>
+    <marker id="arrow-emerald" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6"
+            markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#34d399"/>
+    </marker>
+  </defs>
+
+  <!-- Background Grid Pattern -->
+  <rect width="1200" height="780" fill="url(#bgGrad)"/>
+  <g opacity="0.05">
+    <path d="M 0 60 L 1200 60 M 0 120 L 1200 120 M 0 180 L 1200 180 M 0 240 L 1200 240
+             M 0 300 L 1200 300 M 0 360 L 1200 360 M 0 420 L 1200 420 M 0 480 L 1200 480
+             M 0 540 L 1200 540 M 0 600 L 1200 600 M 0 660 L 1200 660 M 0 720 L 1200 720"
+          stroke="#ffffff" stroke-width="1"/>
+    <path d="M 60 0 L 60 780 M 120 0 L 120 780 M 180 0 L 180 780 M 240 0 L 240 780
+             M 300 0 L 300 780 M 360 0 L 360 780 M 420 0 L 420 780 M 480 0 L 480 780
+             M 540 0 L 540 780 M 600 0 L 600 780 M 660 0 L 660 780 M 720 0 L 720 780
+             M 780 0 L 780 780 M 840 0 L 840 780 M 900 0 L 900 780 M 960 0 L 960 780
+             M 1020 0 L 1020 780 M 1080 0 L 1080 780 M 1140 0 L 1140 780"
+          stroke="#ffffff" stroke-width="1"/>
+  </g>
+
+  <!-- Top Header Banner -->
+  <g transform="translate(50, 30)">
+    <text x="0" y="24" fill="#f8fafc" font-size="22" font-weight="700"
+          letter-spacing="-0.5">End-to-End System &amp; Algorithmic Architecture</text>
+    <text x="0" y="46" fill="#94a3b8" font-size="13">
+      From-Scratch Continuous Control (PPO, SAC, TD3) &bull; Empirical Profiling Harness &bull; Production Serving
+    </text>
+    <rect x="940" y="2" width="160" height="26" rx="13" fill="#1e293b" stroke="#334155"/>
+    <circle cx="954" cy="15" r="4" fill="#10b981"/>
+    <text x="966" y="19" fill="#e2e8f0" font-size="11" font-weight="600">59/59 Tests Passing</text>
+  </g>
+
+  <!-- ==================== SECTION 1: ENVIRONMENTS ==================== -->
+  <g transform="translate(50, 95)" filter="url(#glow)">
+    <rect width="250" height="635" rx="12" fill="url(#envGrad)" stroke="#0284c7" stroke-width="1.5"/>
+    <rect width="250" height="42" rx="12" fill="#0f172a" fill-opacity="0.8"/>
+    <text x="20" y="26" fill="#38bdf8" font-size="13" font-weight="700">1. ENVIRONMENTS &amp; TASKS</text>
+
+    <!-- Card 1.1: HalfCheetah -->
+    <g transform="translate(15, 60)">
+      <rect width="220" height="110" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="14" y="24" fill="#f1f5f9" font-size="13" font-weight="600">HalfCheetah-v5</text>
+      <text x="14" y="44" fill="#94a3b8" font-size="11">State Dim: 17 continuous</text>
+      <text x="14" y="60" fill="#94a3b8" font-size="11">Action Dim: 6 torque [-1, 1]</text>
+      <rect x="14" y="74" width="105" height="22" rx="4" fill="#0369a1" fill-opacity="0.3"/>
+      <text x="20" y="89" fill="#38bdf8" font-size="10" font-weight="600">Primary Benchmark</text>
+    </g>
+
+    <!-- Card 1.2: InvertedPendulum -->
+    <g transform="translate(15, 185)">
+      <rect width="220" height="95" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="14" y="24" fill="#f1f5f9" font-size="13" font-weight="600">InvertedPendulum-v5</text>
+      <text x="14" y="44" fill="#94a3b8" font-size="11">State: 4 &bull; Action: 1 force</text>
+      <rect x="14" y="58" width="130" height="22" rx="4" fill="#334155" fill-opacity="0.4"/>
+      <text x="20" y="73" fill="#cbd5e1" font-size="10" font-weight="500">Pipeline Pilot Check (40s)</text>
+    </g>
+
+    <!-- Card 1.3: TargetVelocityEnv -->
+    <g transform="translate(15, 295)">
+      <rect width="220" height="175" rx="8" fill="#0f172a" stroke="#0284c7" stroke-width="1.2"/>
+      <text x="14" y="24" fill="#38bdf8" font-size="13" font-weight="600">TargetVelocityEnv</text>
+      <text x="14" y="44" fill="#e2e8f0" font-size="11">Multi-Task Gym Wrapper</text>
+      <text x="14" y="64" fill="#94a3b8" font-size="10">&bull; Goal conditioning: [s, v*]</text>
+      <text x="14" y="80" fill="#94a3b8" font-size="10">&bull; Targets v* &isin; {1.0, 2.5, 4.0} m/s</text>
+      <text x="14" y="96" fill="#94a3b8" font-size="10">&bull; Reward: -|v_x - v*| - 0.1||a||²</text>
+      <rect x="14" y="112" width="192" height="48" rx="4" fill="#0369a1" fill-opacity="0.2"/>
+      <text x="20" y="128" fill="#7dd3fc" font-size="10" font-weight="600">Conditioned Generalists vs.</text>
+      <text x="20" y="146" fill="#7dd3fc" font-size="10" font-weight="600">Single-Task Specialists</text>
+    </g>
+
+    <!-- Simulation Telemetry Box -->
+    <g transform="translate(15, 485)">
+      <rect width="220" height="135" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="14" y="24" fill="#f8fafc" font-size="12" font-weight="600">Simulation Loop</text>
+      <text x="14" y="44" fill="#94a3b8" font-size="10">&bull; Step time: 0.05s MuJoCo</text>
+      <text x="14" y="60" fill="#94a3b8" font-size="10">&bull; Truncation: 1000 steps</text>
+      <text x="14" y="76" fill="#94a3b8" font-size="10">&bull; Action bound: [-1.0, 1.0]</text>
+      <rect x="14" y="92" width="192" height="30" rx="4" fill="#0f766e" fill-opacity="0.3"/>
+      <text x="20" y="111" fill="#2dd4bf" font-size="10" font-weight="600">&radic; Strict Termination Flag (d)</text>
+    </g>
+  </g>
+
+  <!-- Arrow Env -> Algos -->
+  <path d="M 300 230 L 340 230" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <path d="M 300 410 L 340 410" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- ==================== SECTION 2: ALGORITHMS (PYTORCH) ==================== -->
+  <g transform="translate(345, 95)" filter="url(#glow)">
+    <rect width="295" height="635" rx="12" fill="url(#algoGrad)" stroke="#6366f1" stroke-width="1.5"/>
+    <rect width="295" height="42" rx="12" fill="#0f172a" fill-opacity="0.8"/>
+    <text x="20" y="26" fill="#818cf8" font-size="13" font-weight="700">2. CORE ALGORITHMS (FROM SCRATCH)</text>
+
+    <!-- Card 2.1: PPO -->
+    <g transform="translate(15, 55)">
+      <rect width="265" height="150" rx="8" fill="#0f172a" stroke="#3730a3" stroke-width="1"/>
+      <text x="14" y="24" fill="#a5b4fc" font-size="13" font-weight="700">PPO (Proximal Policy Opt)</text>
+      <text x="14" y="44" fill="#cbd5e1" font-size="10">&bull; On-Policy Actor-Critic Trunk (2x64)</text>
+      <text x="14" y="60" fill="#cbd5e1" font-size="10">&bull; GAE(&lambda;=0.95, &gamma;=0.99) Advantage</text>
+      <text x="14" y="76" fill="#cbd5e1" font-size="10">&bull; Clipped Surrogate: clip(r_t, 1&plusmn;&epsilon;)</text>
+      <text x="14" y="92" fill="#cbd5e1" font-size="10">&bull; 10 Epochs over Minibatches (64)</text>
+      <rect x="14" y="108" width="237" height="30" rx="4" fill="#312e81" fill-opacity="0.4"/>
+      <text x="20" y="127" fill="#c7d2fe" font-size="10" font-weight="600">Cheap Step &bull; F_update = 38.3%</text>
+    </g>
+
+    <!-- Card 2.2: SAC -->
+    <g transform="translate(15, 218)">
+      <rect width="265" height="185" rx="8" fill="#0f172a" stroke="#6366f1" stroke-width="1.2"/>
+      <text x="14" y="24" fill="#c084fc" font-size="13" font-weight="700">SAC (Soft Actor-Critic)</text>
+      <text x="14" y="44" fill="#cbd5e1" font-size="10">&bull; Max-Entropy RL: E[r + &alpha; H(&pi;)]</text>
+      <text x="14" y="60" fill="#cbd5e1" font-size="10">
+        &bull; Twin Critics: y = r + &gamma;(1-d)[min Q - &alpha; log &pi;]
+      </text>
+      <text x="14" y="76" fill="#cbd5e1" font-size="10">&bull; Squashed Gaussian (tanh projection)</text>
+      <text x="14" y="92" fill="#cbd5e1" font-size="10">&bull; Jacobian correction: &Sigma; log(1 - tanh²(u))</text>
+      <text x="14" y="108" fill="#cbd5e1" font-size="10">
+        &bull; Autotuned &alpha;: L_&alpha; = -log &alpha; (log &pi; + H_targ)
+      </text>
+      <rect x="14" y="126" width="237" height="46" rx="4" fill="#4c1d95" fill-opacity="0.3"/>
+      <text x="20" y="144" fill="#e9d5ff" font-size="10" font-weight="700">Highest Sample Efficiency</text>
+      <text x="20" y="160" fill="#d8b4fe" font-size="9.5">4,500 steps to &theta; &bull; F_update = 91.0%</text>
+    </g>
+
+    <!-- Card 2.3: TD3 -->
+    <g transform="translate(15, 415)">
+      <rect width="265" height="145" rx="8" fill="#0f172a" stroke="#4f46e5" stroke-width="1"/>
+      <text x="14" y="24" fill="#818cf8" font-size="13" font-weight="700">TD3 (Twin Delayed DDPG)</text>
+      <text x="14" y="44" fill="#cbd5e1" font-size="10">&bull; Deterministic Actor + Clipped Target Noise</text>
+      <text x="14" y="60" fill="#cbd5e1" font-size="10">&bull; Clipped Double-Q: min(Q1_targ, Q2_targ)</text>
+      <text x="14" y="76" fill="#cbd5e1" font-size="10">&bull; Delayed Policy Updates (k = 2)</text>
+      <text x="14" y="92" fill="#cbd5e1" font-size="10">&bull; Target Smoothing: a' + clip(&epsilon;, -c, c)</text>
+      <rect x="14" y="106" width="237" height="28" rx="4" fill="#312e81" fill-opacity="0.4"/>
+      <text x="20" y="124" fill="#c7d2fe" font-size="10" font-weight="600">1.8x Faster than SAC &bull; 55.2 SPS</text>
+    </g>
+
+    <!-- Replay Memory Bar -->
+    <g transform="translate(15, 570)">
+      <rect width="265" height="50" rx="6" fill="#0f172a" stroke="#059669" stroke-width="1"/>
+      <text x="14" y="22" fill="#34d399" font-size="11" font-weight="700">Circular Replay Buffer (1M Transitions)</text>
+      <text x="14" y="38" fill="#94a3b8" font-size="9.5">Strict (d=terminated) flag &bull; Uniform Batch (256)</text>
+    </g>
+  </g>
+
+  <!-- Arrow Algos -> Benchmarking -->
+  <path d="M 640 230 L 680 230" stroke="#818cf8" stroke-width="2" marker-end="url(#arrow-purple)"/>
+  <path d="M 640 470 L 680 470" stroke="#818cf8" stroke-width="2" marker-end="url(#arrow-purple)"/>
+
+  <!-- ==================== SECTION 3: BENCHMARKING HARNESS ==================== -->
+  <g transform="translate(685, 95)" filter="url(#glow)">
+    <rect width="245" height="635" rx="12" fill="url(#benchGrad)" stroke="#059669" stroke-width="1.5"/>
+    <rect width="245" height="42" rx="12" fill="#0f172a" fill-opacity="0.8"/>
+    <text x="20" y="26" fill="#34d399" font-size="13" font-weight="700">3. BENCHMARK HARNESS</text>
+
+    <!-- Card 3.1: Multiprocess Runner -->
+    <g transform="translate(15, 60)">
+      <rect width="215" height="115" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="14" y="24" fill="#f8fafc" font-size="12" font-weight="600">Multiprocess Study</text>
+      <text x="14" y="44" fill="#94a3b8" font-size="10">&bull; compare_study.py</text>
+      <text x="14" y="60" fill="#94a3b8" font-size="10">&bull; N parallel workers (--jobs 4)</text>
+      <text x="14" y="76" fill="#94a3b8" font-size="10">&bull; Dynamic param overrides</text>
+      <rect x="14" y="86" width="187" height="20" rx="4" fill="#064e3b" fill-opacity="0.5"/>
+      <text x="20" y="100" fill="#6ee7b7" font-size="9" font-weight="600">Seed Isolation &amp; JSON Logging</text>
+    </g>
+
+    <!-- Card 3.2: Cost Profiling -->
+    <g transform="translate(15, 190)">
+      <rect width="215" height="130" rx="8" fill="#0f172a" stroke="#059669" stroke-width="1"/>
+      <text x="14" y="24" fill="#34d399" font-size="12" font-weight="600">Wall-Clock Profiler</text>
+      <text x="14" y="44" fill="#94a3b8" font-size="10">&bull; Step 2 CPU profiling: 316.37s</text>
+      <text x="14" y="60" fill="#94a3b8" font-size="10">&bull; Rollout: 14.07s (4.45%)</text>
+      <text x="14" y="76" fill="#94a3b8" font-size="10">&bull; Autograd: 302.23s (95.55%)</text>
+      <rect x="14" y="88" width="187" height="30" rx="4" fill="#065f46" fill-opacity="0.4"/>
+      <text x="20" y="108" fill="#a7f3d0" font-size="9.5" font-weight="600">Autograd is 21.5x Rollout</text>
+    </g>
+
+    <!-- Card 3.3: Survival Metrics -->
+    <g transform="translate(15, 335)">
+      <rect width="215" height="140" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="14" y="24" fill="#f8fafc" font-size="12" font-weight="600">Survival Analysis</text>
+      <text x="14" y="44" fill="#94a3b8" font-size="10">&bull; Threshold &theta; = -225.07</text>
+      <text x="14" y="60" fill="#94a3b8" font-size="10">&bull; Completion count k / n</text>
+      <text x="14" y="76" fill="#94a3b8" font-size="10">&bull; Censored arrival steps</text>
+      <text x="14" y="92" fill="#94a3b8" font-size="10">&bull; Welch's t-test + 95% CI</text>
+      <rect x="14" y="104" width="187" height="22" rx="4" fill="#064e3b" fill-opacity="0.5"/>
+      <text x="20" y="119" fill="#6ee7b7" font-size="9" font-weight="600">Prevents Survivorship Bias</text>
+    </g>
+
+    <!-- Card 3.4: Multi-Task Eval -->
+    <g transform="translate(15, 490)">
+      <rect width="215" height="130" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="14" y="24" fill="#f8fafc" font-size="12" font-weight="600">Cross-Task Evaluation</text>
+      <text x="14" y="44" fill="#94a3b8" font-size="10">&bull; task_eval.py matrix</text>
+      <text x="14" y="60" fill="#94a3b8" font-size="10">&bull; Generalist vs Specialist</text>
+      <text x="14" y="76" fill="#94a3b8" font-size="10">&bull; Transfer heatmap generation</text>
+      <rect x="14" y="88" width="187" height="30" rx="4" fill="#065f46" fill-opacity="0.4"/>
+      <text x="20" y="108" fill="#a7f3d0" font-size="9.5" font-weight="600">Detects Negative Transfer</text>
+    </g>
+  </g>
+
+  <!-- Arrow Benchmarking -> Deploy -->
+  <path d="M 930 230 L 965 230" stroke="#34d399" stroke-width="2" marker-end="url(#arrow-emerald)"/>
+  <path d="M 930 520 L 965 520" stroke="#34d399" stroke-width="2" marker-end="url(#arrow-emerald)"/>
+
+  <!-- ==================== SECTION 4: SERVING & DASHBOARD ==================== -->
+  <g transform="translate(970, 95)" filter="url(#glow)">
+    <rect width="180" height="635" rx="12" fill="url(#deployGrad)" stroke="#d97706" stroke-width="1.5"/>
+    <rect width="180" height="42" rx="12" fill="#0f172a" fill-opacity="0.8"/>
+    <text x="16" y="26" fill="#fbbf24" font-size="12" font-weight="700">4. SERVING &amp; UI</text>
+
+    <!-- Card 4.1: TorchScript -->
+    <g transform="translate(12, 60)">
+      <rect width="156" height="110" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="12" y="24" fill="#fef3c7" font-size="12" font-weight="600">TorchScript JIT</text>
+      <text x="12" y="44" fill="#94a3b8" font-size="10">&bull; policy.ts export</text>
+      <text x="12" y="60" fill="#94a3b8" font-size="10">&bull; C++ runtime ready</text>
+      <text x="12" y="76" fill="#94a3b8" font-size="10">&bull; Exact bounds [-1, 1]</text>
+      <rect x="12" y="86" width="132" height="16" rx="3" fill="#78350f" fill-opacity="0.4"/>
+      <text x="16" y="98" fill="#fde68a" font-size="8.5" font-weight="600">Zero Python Overhead</text>
+    </g>
+
+    <!-- Card 4.2: FastAPI -->
+    <g transform="translate(12, 185)">
+      <rect width="156" height="145" rx="8" fill="#0f172a" stroke="#d97706" stroke-width="1"/>
+      <text x="12" y="24" fill="#fbbf24" font-size="12" font-weight="600">FastAPI Service</text>
+      <text x="12" y="44" fill="#cbd5e1" font-size="9.5">&bull; GET /health</text>
+      <text x="12" y="60" fill="#cbd5e1" font-size="9.5">&bull; POST /act (sub-2ms)</text>
+      <text x="12" y="76" fill="#cbd5e1" font-size="9.5">&bull; POST /switch (algo)</text>
+      <text x="12" y="92" fill="#cbd5e1" font-size="9.5">&bull; CORS Enabled</text>
+      <rect x="12" y="106" width="132" height="28" rx="4" fill="#78350f" fill-opacity="0.5"/>
+      <text x="16" y="124" fill="#fef08a" font-size="9" font-weight="700">Dynamic Swapping</text>
+    </g>
+
+    <!-- Card 4.3: Web Dashboard -->
+    <g transform="translate(12, 345)">
+      <rect width="156" height="150" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="12" y="24" fill="#f8fafc" font-size="12" font-weight="600">Web Analytics</text>
+      <text x="12" y="44" fill="#94a3b8" font-size="9.5">&bull; Vanilla JS + CSS</text>
+      <text x="12" y="60" fill="#94a3b8" font-size="9.5">&bull; Canvas Gym Sim</text>
+      <text x="12" y="76" fill="#94a3b8" font-size="9.5">&bull; Interactive Charts</text>
+      <text x="12" y="92" fill="#94a3b8" font-size="9.5">&bull; Policy Inspector</text>
+      <rect x="12" y="106" width="132" height="30" rx="4" fill="#0284c7" fill-opacity="0.3"/>
+      <text x="16" y="125" fill="#38bdf8" font-size="8.5" font-weight="600">Vercel Deploy Ready</text>
+    </g>
+
+    <!-- Card 4.4: Publications -->
+    <g transform="translate(12, 510)">
+      <rect width="156" height="110" rx="8" fill="#0f172a" stroke="#a855f7" stroke-width="1"/>
+      <text x="12" y="22" fill="#d8b4fe" font-size="11" font-weight="600">Academic Paper</text>
+      <text x="12" y="40" fill="#94a3b8" font-size="9.5">&bull; technical_report.pdf</text>
+      <text x="12" y="56" fill="#94a3b8" font-size="9.5">&bull; IEEE LaTeX Preprint</text>
+      <text x="12" y="72" fill="#94a3b8" font-size="9.5">&bull; CITATION.cff</text>
+      <rect x="12" y="82" width="132" height="20" rx="3" fill="#581c87" fill-opacity="0.4"/>
+      <text x="16" y="96" fill="#e9d5ff" font-size="8.5" font-weight="600">Native "Cite Repo"</text>
+    </g>
+  </g>
+</svg>
+""",
+    ]
+
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.writelines(svg_chunks)
+
+    print(f"Generated vector SVG architecture diagram at {out_path} ({os.path.getsize(out_path):,} bytes)")
+
+
+if __name__ == "__main__":
+    generate_svg()

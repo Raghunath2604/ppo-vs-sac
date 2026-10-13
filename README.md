@@ -72,7 +72,87 @@ python demo.py --algo td3 --gif assets/td3_demo.gif --steps 100
 ------------------------------------------------------------------------------
 ```
 
-## Key System Architecture
+## System Architecture & Pipeline Design
+
+### 1. End-to-End System Architecture
+
+<p align="center">
+  <img src="assets/system_architecture.svg" width="100%" alt="End-to-End System Architecture Diagram" />
+</p>
+
+```mermaid
+flowchart TB
+    subgraph ENV["1. Continuous Control Environments (Gymnasium & MuJoCo)"]
+        direction TB
+        E1["HalfCheetah-v5<br/><i>(obs: 17 continuous, act: 6 torque)</i>"]
+        E2["InvertedPendulum-v5<br/><i>(obs: 4 continuous, act: 1 force)</i>"]
+        E3["TargetVelocityEnv<br/><i>Multi-Task Wrapper [s, v*] with v* ∈ {1.0, 2.5, 4.0}</i>"]
+    end
+
+    subgraph ALGO["2. From-Scratch Continuous Control Algorithms (PyTorch)"]
+        direction TB
+        subgraph PPO_BLOCK["On-Policy: PPO"]
+            direction TB
+            PPO_ACT["Actor-Critic MLP<br/>(Shared / Separate 2x64)"]
+            PPO_BUF["Rollout Buffer<br/>(Discarded every batch)"]
+            PPO_LOSS["Clipped Surrogate Loss<br/>& GAE(λ) Advantage"]
+        end
+
+        subgraph OFF_BLOCK["Off-Policy: SAC & TD3"]
+            direction TB
+            OFF_BUF["Ring Replay Buffer (1M Transitions)<br/>d = terminated (No truncation leak)"]
+            SAC_CORE["Soft Actor-Critic (SAC)<br/>• Squashed Gaussian (tanh + Jacobian)<br/>• Twin Critics (Q1, Q2 min-target)<br/>• Dual Temp Autotuning (α)"]
+            TD3_CORE["Twin Delayed DDPG (TD3)<br/>• Deterministic Policy (k=2 delay)<br/>• Target Smoothing Noise<br/>• Clipped Double-Q"]
+        end
+    end
+
+    subgraph HARNESS["3. Rigorous Empirical Benchmarking Harness"]
+        direction TB
+        RUNNER["Multiprocess Study Runner<br/>(compare_study.py across seeds & jobs)"]
+        PROFILER["Wall-Clock Time Profiler<br/>(t_rollout vs t_update split)"]
+        METRICS["Survival Metrics Engine<br/>(k/n completed, median arrival θ)"]
+        MT_EVAL["Multi-Task Evaluator<br/>(Transfer Matrix & Heatmaps)"]
+    end
+
+    subgraph DEPLOY["4. Serving, Web Dashboard & Publications"]
+        direction TB
+        TS["TorchScript JIT Compiler<br/>(policy.ts serialization)"]
+        API["FastAPI Microservice<br/>(/health, /act &lt; 2ms, /switch)"]
+        DASH["Analytics Web Dashboard<br/>(Vanilla JS + Canvas Gym Sim)"]
+        PUB["Technical Report (PDF)<br/>(docs/technical_report.pdf)"]
+    end
+
+    ENV --> ALGO
+    ALGO --> HARNESS
+    ALGO --> DEPLOY
+    HARNESS --> DASH
+    DEPLOY --> DASH
+    HARNESS --> PUB
+```
+
+### 2. Execution & Dataflow Pipeline: On-Policy vs. Off-Policy
+
+```mermaid
+flowchart LR
+    subgraph PPO_PIPE["On-Policy Pipeline (PPO)"]
+        direction TB
+        P1["1. Collect Rollout<br/>(N steps × M envs)"] --> P2["2. Compute GAE(γ, λ)<br/>& Value Targets"]
+        P2 --> P3["3. SGD Mini-Batches<br/>(10 epochs over batch)"]
+        P3 --> P4["4. Discard Rollout Data<br/>(Update Fraction ~38%)"]
+        P4 --> P1
+    end
+
+    subgraph OFF_PIPE["Off-Policy Pipeline (SAC & TD3)"]
+        direction TB
+        O1["1. Step Environment<br/>(1 transition)"] --> O2["2. Push to 1M Buffer<br/>(s, a, r, s', d=term)"]
+        O2 --> O3["3. Sample Batch (256)<br/>(UTD ratio ≥ 1)"]
+        O3 --> O4["4. Critic Min-Target Step<br/>(Autograd backprop)"]
+        O4 --> O5["5. Actor & Polyak Update<br/>(SAC: every step | TD3: k=2)"]
+        O5 --> O1
+    end
+```
+
+### 3. Repository File Map & Modular Responsibilities
 
 ```
 ppo-vs-sac/
@@ -91,14 +171,25 @@ ppo-vs-sac/
 │   └── serve.py              # FastAPI microservice (/health, /act, /switch) with CORS
 ├── dashboard/                # Interactive analytics web dashboard (Vanilla JS + CSS)
 ├── docs/
+│   ├── technical_report.pdf  # Compiled 2-page publication technical report (PDF)
 │   ├── RESEARCH_REPORT.md    # IEEE-style technical report with formal derivations
 │   ├── RESULTS_TEMPLATE.md   # Measured empirical benchmarks and hypothesis evaluations
 │   └── PROCESS.md            # Detailed end-to-end execution guide
+├── paper/
+│   └── paper.tex             # Complete IEEEtran LaTeX preprint source
+├── scripts/
+│   ├── build_paper_pdf.py    # ReportLab script to compile docs/technical_report.pdf
+│   └── generate_architecture_diagram.py # Vector SVG architecture generator
+├── assets/
+│   ├── system_architecture.svg # High-resolution vector architecture graphic
+│   └── halfcheetah_demo.gif  # Real-time policy torque execution demonstration
 ├── results/                  # Generated benchmark tables, CSVs, and publication plots
 │   ├── algos_preview/        # HalfCheetah algorithms study (steps, wall-clock, profile)
 │   ├── mt_preview/           # HalfCheetah multi-task benchmark (heatmaps, transfer matrices)
 │   └── algos_quick/          # InvertedPendulum pipeline pilot
 ├── tests/                    # 59 automated unit, property, learnability, and serving tests
+├── CITATION.cff              # GitHub citation metadata (native "Cite this repository")
+├── demo.py                   # Zero-configuration live terminal policy simulator & CLI benchmark
 ├── Makefile                  # Automation targets (test, speedtest, algos-quick, serve, etc.)
 └── pyproject.toml            # Package configuration & dependencies
 ```
