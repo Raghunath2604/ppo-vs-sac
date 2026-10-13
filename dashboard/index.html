@@ -28,14 +28,31 @@
       <nav class="nav-links">
         <a href="#overview" class="nav-link active">Overview</a>
         <a href="#speedtest" class="nav-link">Cost Profiler</a>
-        <a href="#benchmarks" class="nav-link">Study A (Algorithms)</a>
+        <a href="#benchmarks" class="nav-link">Study A</a>
         <a href="#multitask" class="nav-link">Study B (Multi-Task)</a>
         <a href="#inspector" class="nav-link">Live Inspector</a>
-        <a href="#theory" class="nav-link">Theory & PRD</a>
+        <a href="#architecture" class="nav-link">Architecture</a>
+        <a href="#publications" class="nav-link">Paper & Citation</a>
+        <a href="#theory" class="nav-link">Theory</a>
       </nav>
       <div class="header-badges">
-        <span class="badge badge-success" id="badge-tests">✓ 59/59 Tests Pass</span>
-        <span class="badge badge-accent">CPU-Only PyTorch</span>
+        <div class="api-status-pill" id="api-status-pill" title="FastAPI Serving Status">
+          <span class="status-dot"></span>
+          <span id="api-status-text">Microservice :8000</span>
+        </div>
+        <a href="technical_report.pdf" target="_blank" class="btn-header btn-paper">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          Paper PDF
+        </a>
+        <a href="https://github.com/Raghunath2604/ppo-vs-sac" target="_blank" class="btn-header btn-github">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          GitHub
+        </a>
       </div>
     </div>
   </header>
@@ -45,13 +62,14 @@
     <section class="hero-section" id="overview">
       <div class="hero-header">
         <div class="tag-row">
-          <span class="tag tag-primary">Department of AI & Machine Learning, REVA University</span>
+          <span class="tag tag-primary">REVA University, Bengaluru</span>
           <span class="tag tag-secondary">October 2026 Technical Report</span>
           <span class="tag tag-info">Package: algo_compare</span>
+          <span class="tag tag-success">59 / 59 Tests Passing</span>
         </div>
         <h1 class="hero-title">Sample Efficiency, Stability and Wall-Clock Cost in Continuous Control</h1>
         <p class="hero-desc">
-          A principled, reproducible comparison separating <strong>environment data hunger</strong> from <strong>compute expenditure</strong>. Built with from-scratch PyTorch implementations of PPO, SAC, and TD3, strict replay buffer terminal semantics, unified wall-clock profiling, and a velocity-conditioned HalfCheetah multi-task study.
+          A principled, reproducible reinforcement learning comparison separating <strong>environment data hunger</strong> from <strong>compute expenditure</strong>. Built with from-scratch PyTorch implementations of PPO, SAC, and TD3, strict replay buffer terminal semantics, unified wall-clock profiling, and a velocity-conditioned HalfCheetah multi-task benchmark.
         </p>
       </div>
 
@@ -287,17 +305,17 @@
       </div>
     </section>
 
-    <!-- Section 5: Live Policy Inspector & Serving Playground -->
+    <!-- Section 5: Live Policy Inspector & Interactive Locomotion Canvas -->
     <section class="section-card" id="inspector">
       <div class="section-header">
         <div>
-          <h2 class="section-title">Live Model Inspector & Inference Playground</h2>
+          <h2 class="section-title">Live Model Inspector & Interactive Locomotion Simulator</h2>
           <p class="section-subtitle">
-            Simulate policy forward inference through the unified TorchScript deployment contract
+            Interact with the policy in real time: watch articulated HalfCheetah forward kinematics and inspect TorchScript continuous torque outputs
           </p>
         </div>
         <div class="model-picker">
-          <label for="select-algo">Algorithm:</label>
+          <label for="select-algo">Active Algorithm:</label>
           <select id="select-algo" class="form-select">
             <option value="sac">Soft Actor-Critic (SAC)</option>
             <option value="td3">Twin Delayed DDPG (TD3)</option>
@@ -306,20 +324,56 @@
         </div>
       </div>
 
-      <div class="inspector-grid">
+      <!-- Live Physics Simulation Canvas Row -->
+      <div class="card card-inner canvas-container-card">
+        <div class="canvas-top-bar">
+          <div class="sim-badge">
+            <span class="pulse-dot"></span>
+            <span>2D Kinematic Locomotion Canvas (HalfCheetah-v5)</span>
+          </div>
+          <div class="sim-controls">
+            <button class="btn btn-primary btn-sm" id="btn-toggle-sim">▶ Run Locomotion</button>
+            <button class="btn btn-secondary btn-sm" id="btn-step-sim">Step 1x</button>
+            <button class="btn btn-secondary btn-sm" id="btn-reset-sim">Reset Gait</button>
+          </div>
+        </div>
+        <div class="canvas-wrapper">
+          <canvas id="simCanvas" width="900" height="220"></canvas>
+        </div>
+        <div class="sim-telemetry-bar">
+          <div class="telemetry-chip">
+            <span class="chip-label">Target Velocity ($v^*$):</span>
+            <span class="chip-val mono" id="hud-vtarget">2.50 m/s</span>
+          </div>
+          <div class="telemetry-chip">
+            <span class="chip-label">Current Velocity ($v_x$):</span>
+            <span class="chip-val mono" id="hud-vx">1.20 m/s</span>
+          </div>
+          <div class="telemetry-chip">
+            <span class="chip-label">Tracking Error:</span>
+            <span class="chip-val mono" id="hud-error">1.30 m/s</span>
+          </div>
+          <div class="telemetry-chip">
+            <span class="chip-label">Inference Mode:</span>
+            <span class="chip-val mono" id="hud-source">FastAPI Service (:8000)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="inspector-grid" style="margin-top: 1.25rem;">
         <!-- Input State Controller -->
         <div class="card card-inner">
-          <h3 class="card-title">Simulated Observation Vector (s &isin; &reals;<sup>17</sup> + v*)</h3>
+          <h3 class="card-title">Observation State Vector ($s \in \mathbb{R}^{17} + v^*$)</h3>
           <div class="slider-row">
-            <label>Target Velocity (v*): <span id="val-vtarget" class="mono">2.50 m/s</span></label>
+            <label>Target Velocity ($v^*$): <span id="val-vtarget" class="mono">2.50 m/s</span></label>
             <input type="range" id="slider-vtarget" min="0.5" max="5.0" step="0.1" value="2.5" class="slider">
           </div>
           <div class="slider-row">
-            <label>Current Forward Velocity (v<sub>x</sub>): <span id="val-vx" class="mono">1.20 m/s</span></label>
+            <label>Forward Velocity ($v_x$): <span id="val-vx" class="mono">1.20 m/s</span></label>
             <input type="range" id="slider-vx" min="-1.0" max="6.0" step="0.1" value="1.2" class="slider">
           </div>
           <div class="slider-row">
-            <label>Root Pitch Angle (&theta;): <span id="val-pitch" class="mono">0.05 rad</span></label>
+            <label>Root Pitch Angle ($\theta$): <span id="val-pitch" class="mono">0.05 rad</span></label>
             <input type="range" id="slider-pitch" min="-0.8" max="0.8" step="0.02" value="0.05" class="slider">
           </div>
           <div class="slider-row">
@@ -334,7 +388,7 @@
 
         <!-- Output Action & Deployment Diagnostics -->
         <div class="card card-inner">
-          <h3 class="card-title">Deterministic Policy Output (a = &mu;(s) &isin; [-1, 1]<sup>6</sup>)</h3>
+          <h3 class="card-title">Continuous Torque Action ($a \in [-1, 1]^6$)</h3>
           <div class="action-bars-container" id="action-bars">
             <!-- Rendered by JS -->
           </div>
@@ -348,7 +402,7 @@
               <span class="spec-val mono">17 floats (specialist) / 18 floats (conditioned)</span>
             </div>
             <div class="spec-row">
-              <span class="spec-label">Simulated Latency:</span>
+              <span class="spec-label">Inference Latency:</span>
               <span class="spec-val mono" id="sim-latency">0.42 ms (CPU TorchScript)</span>
             </div>
             <div class="spec-row">
@@ -360,11 +414,108 @@
       </div>
     </section>
 
-    <!-- Section 6: Theoretical Foundation & PRD Requirements -->
+    <!-- Section 6: End-to-End System Architecture -->
+    <section class="section-card" id="architecture">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">End-to-End System & Algorithmic Architecture</h2>
+          <p class="section-subtitle">
+            Modular layout spanning continuous physics environments, from-scratch PyTorch models, statistical benchmarking, and microservice serving
+          </p>
+        </div>
+        <div>
+          <a href="system_architecture.svg" target="_blank" class="btn btn-sm btn-secondary">Open Vector SVG</a>
+        </div>
+      </div>
+
+      <div class="architecture-diagram-container">
+        <img src="system_architecture.svg" alt="System Architecture Diagram" class="arch-image" />
+      </div>
+
+      <div class="arch-cards-grid">
+        <div class="card card-inner">
+          <h4 class="arch-card-title"><span class="arch-dot dot-sky"></span> 1. Environments & Tasks</h4>
+          <p class="arch-card-text">
+            Standard MuJoCo <code>HalfCheetah-v5</code> and <code>InvertedPendulum-v5</code> with custom <code>TargetVelocityEnv</code> goal wrapper. Enforces strict termination vs truncation separation ($d = \text{terminated}$).
+          </p>
+        </div>
+        <div class="card card-inner">
+          <h4 class="arch-card-title"><span class="arch-dot dot-indigo"></span> 2. Algorithms (From Scratch)</h4>
+          <p class="arch-card-text">
+            Clean PyTorch implementations of PPO (clipped surrogate, GAE), SAC (squashed Gaussian tanh actor, twin critics, dual entropy autotuning), and TD3 (delayed updates, target smoothing noise).
+          </p>
+        </div>
+        <div class="card card-inner">
+          <h4 class="arch-card-title"><span class="arch-dot dot-emerald"></span> 3. Benchmarking Harness</h4>
+          <p class="arch-card-text">
+            Multiprocess study runner (<code>compare_study.py</code>), precise wall-clock profiling ($t_{\text{rollout}}$ vs $t_{\text{update}}$), non-parametric survival analysis with censored thresholds, and multi-task evaluation matrices.
+          </p>
+        </div>
+        <div class="card card-inner">
+          <h4 class="arch-card-title"><span class="arch-dot dot-amber"></span> 4. Production Serving & UI</h4>
+          <p class="arch-card-text">
+            TorchScript JIT serialization (<code>policy.ts</code>), low-latency FastAPI microservice (<code>serve.py</code> with <code>/act</code> and <code>/switch</code>), and interactive browser analytics dashboard.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 7: Technical Report, Publications & BibTeX -->
+    <section class="section-card" id="publications">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Technical Report & Formal Publication</h2>
+          <p class="section-subtitle">
+            Complete academic artifacts, IEEE LaTeX preprint source, compiled PDF technical report, and citation metadata
+          </p>
+        </div>
+        <div class="control-group">
+          <a href="technical_report.pdf" download class="btn btn-sm btn-primary">Download PDF Report (149 KB)</a>
+          <button class="btn btn-sm btn-secondary" id="btn-copy-bibtex">Copy BibTeX</button>
+        </div>
+      </div>
+
+      <div class="grid-2col">
+        <div class="card card-inner">
+          <h3 class="card-title">Paper Abstract & Technical Overview</h3>
+          <p class="pub-abstract">
+            <strong>Sample Efficiency, Stability, and Cost of PPO, SAC, and TD3: From-Scratch Implementations, a Reproducible Comparison Harness, and a Multi-Task Study</strong>
+          </p>
+          <p class="pub-meta">
+            <em>Raghunathareddy GR &bull; Department of AI & ML, REVA University &bull; October 2026</em>
+          </p>
+          <p class="pub-body">
+            Deep reinforcement learning algorithms are routinely ranked solely by learning curves drawn against environment interaction steps. However, algorithm selection in continuous control is an economic trade-off between data collection and autograd compute. This technical report presents from-scratch PyTorch implementations of SAC and TD3 alongside a verified PPO baseline. We introduce first-class wall-clock profiling, non-parametric handling of censored threshold metrics, a target-velocity multi-task benchmark on MuJoCo HalfCheetah-v5, and a unified TorchScript/FastAPI deployment microservice. Verification spans 59 automated tests (100% pass).
+          </p>
+          <div class="pub-links-row">
+            <a href="technical_report.pdf" target="_blank" class="pub-link">📄 View PDF Report</a>
+            <a href="https://github.com/Raghunath2604/ppo-vs-sac/blob/main/paper/paper.tex" target="_blank" class="pub-link">📝 LaTeX Source (paper.tex)</a>
+            <a href="https://github.com/Raghunath2604/ppo-vs-sac/blob/main/CITATION.cff" target="_blank" class="pub-link">🏷️ CITATION.cff</a>
+          </div>
+        </div>
+
+        <div class="card card-inner">
+          <div class="code-box-header">
+            <span class="code-title">BibTeX Citation</span>
+            <button class="btn-copy-small" id="btn-copy-bibtex-small">Copy</button>
+          </div>
+          <pre class="bibtex-block" id="bibtex-text"><code>@article{raghunathareddy2026ppo_vs_sac,
+  title={Sample Efficiency, Stability, and Cost of PPO, SAC, and TD3: From-Scratch Implementations, a Reproducible Comparison Harness, and a Multi-Task Study},
+  author={Raghunathareddy, G. R.},
+  journal={Technical Report, Department of Artificial Intelligence and Machine Learning, REVA University},
+  year={2026},
+  month={October},
+  url={https://github.com/Raghunath2604/ppo-vs-sac}
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 8: Theoretical Foundation & PRD Requirements -->
     <section class="section-card" id="theory">
       <div class="section-header">
         <div>
-          <h2 class="section-title">Theoretical Foundations & PRD Requirements</h2>
+          <h2 class="section-title">Theoretical Foundations & Algorithmic Mechanics</h2>
           <p class="section-subtitle">
             Critical algorithmic mechanics verified in this codebase
           </p>
@@ -376,7 +527,7 @@
           <div class="theory-num">01</div>
           <h3 class="theory-title">Termination vs. Truncation in Experience Replay</h3>
           <p class="theory-body">
-            Transitions cut short by the simulation time limit (<em>truncation</em>) retain valid continuation value. Storing done = (terminated &or; truncated) would falsely zero-out bootstrap targets:
+            Transitions cut short by simulation time limits (<em>truncations</em>) retain valid continuation value. Storing done = (terminated &or; truncated) falsely zeroes bootstrap targets:
           </p>
           <div class="formula-box mono">
             y = r + &gamma; (1 - terminated) &middot; Q_target(s', a')
@@ -404,7 +555,7 @@
           <div class="theory-num">03</div>
           <h3 class="theory-title">TD3 Target Policy Smoothing & Delay</h3>
           <p class="theory-body">
-            TD3 enforces deterministic actor optimization. To prevent critic value peaks around policy approximations, clipped Gaussian noise is injected into target actions, and actor weight updates are delayed (k = 2):
+            TD3 enforces deterministic actor optimization. To prevent critic value peaks around policy approximations, clipped Gaussian noise is injected into target actions, and actor updates are delayed (k = 2):
           </p>
           <div class="formula-box mono">
             a' = clip(&pi;_targ(s') + clip(&epsilon;, -c, c), a_min, a_max)
@@ -430,6 +581,9 @@
       </div>
     </section>
   </main>
+
+  <!-- Toast Notification Feedback -->
+  <div id="toast" class="toast">Copied to clipboard!</div>
 
   <!-- Footer -->
   <footer class="footer">

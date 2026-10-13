@@ -34,6 +34,43 @@ This project delivers a **rigorous, reproducible benchmarking instrument** and *
   <em>Trained SAC Policy executing continuous torque control on HalfCheetah-v5 with real-time velocity tracking telemetry.</em>
 </p>
 
+### ⚖️ Algorithmic Trade-off Matrix
+
+| Feature / Dimension | PPO (On-Policy) | SAC (Off-Policy) | TD3 (Off-Policy) |
+| :--- | :---: | :---: | :---: |
+| **Sample Efficiency to $\theta$** | Moderate ($>20\text{k}$ steps) | **Superior** ($4,500$ steps) | **High** ($10,500$ steps) |
+| **Wall-Clock Throughput** | **$119.0\text{ SPS}$ (Fastest)** | $30.8\text{ SPS}$ | $55.2\text{ SPS}$ ($1.8\times$ SAC) |
+| **Autograd Update Share ($F_{\text{update}}$)** | **$38.3\%$** | $91.0\%$ | $91.0\%$ |
+| **Policy Representation** | Stochastic Gaussian MLP | Squashed Gaussian ($\tanh$) | Deterministic Policy MLP |
+| **Target Overestimation Device** | Baseline value subtraction | Twin Critics + Min Target | Clipped Double-Q + Target Noise |
+| **Actor Delay Mechanism** | Multi-epoch minibatch SGD | Every step Polyak update ($\tau$) | Delayed Actor Update ($k=2$) |
+| **Replay Memory Requirement** | $0$ (Rollouts discarded) | $1,000,000$ Transitions | $1,000,000$ Transitions |
+| **Optimal Production Fit** | Fast physics sims / Low compute | High data acquisition cost / Hardware | Continuous torque control with throughput constraints |
+
+---
+
+## 📑 Table of Contents
+
+- [⚡ Instant Live Demonstration (`demo.py`)](#-instant-live-demonstration-demopy)
+- [📐 System Architecture & Pipeline Design](#system-architecture--pipeline-design)
+  - [1. End-to-End System Architecture](#1-end-to-end-system-architecture)
+  - [2. Execution & Dataflow: On-Policy vs. Off-Policy](#2-execution--dataflow-pipeline-on-policy-vs-off-policy)
+  - [3. Repository Modular File Map](#3-repository-file-map--modular-responsibilities)
+- [🔬 Mathematical Foundations](#mathematical-foundations)
+  - [1. Soft Actor-Critic (SAC)](#1-soft-actor-critic-sac)
+  - [2. Twin Delayed DDPG (TD3)](#2-twin-delayed-ddpg-td3)
+  - [3. Experience Replay Mechanics](#3-experience-replay-termination-vs-truncation)
+- [📊 Measured Empirical Results](#measured-empirical-results)
+  - [1. Wall-Clock Compute Profiling](#1-step-2-timing-benchmark-runsspeedtest)
+  - [2. Algorithms Benchmark on HalfCheetah](#2-algorithms-benchmark-halfcheetah-v5)
+  - [3. Multi-Task Locomotion Study](#3-multi-task-study-conditioned-generalists-vs-specialists)
+- [🌐 Interactive Web Analytics Dashboard](#interactive-web-dashboard)
+- [🚀 Production Deployment & FastAPI Serving](#production-deployment--inference-api)
+- [⚙️ Quickstart & Reproduction Guide](#quickstart--reproduction)
+- [🏆 Summary of Key Empirical Findings](#summary-of-findings)
+- [📚 Formal Literature References](#references)
+- [📑 Technical Report & Citation (BibTeX)](#technical-report--citation)
+
 ---
 
 ## ⚡ Instant Live Demonstration (`demo.py`)

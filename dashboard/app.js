@@ -521,7 +521,14 @@ function initMultiTaskMatrix() {
   });
 }
 
-// ---------------- 4. Live Inspector Playground ----------------
+// ---------------- 4. Live Inspector Playground & Kinematic Locomotion Canvas ----------------
+let simRunning = false;
+let simAnimId = null;
+let simTime = 0;
+let currentVx = 1.2;
+let groundOffset = 0;
+let latestActions = [0, 0, 0, 0, 0, 0];
+
 function initLiveInspector() {
   const selectAlgo = document.getElementById("select-algo");
   const sVtarget = document.getElementById("slider-vtarget");
@@ -533,24 +540,34 @@ function initLiveInspector() {
   const latencyDisplay = document.getElementById("sim-latency");
   const normDisplay = document.getElementById("sim-norm");
 
+  const hudVtarget = document.getElementById("hud-vtarget");
+  const hudVx = document.getElementById("hud-vx");
+  const hudError = document.getElementById("hud-error");
+  const hudSource = document.getElementById("hud-source");
+
   const jointNames = ["bthigh", "bshin", "bfoot", "fthigh", "fshin", "ffoot"];
 
   function update() {
-    document.getElementById("val-vtarget").textContent = parseFloat(sVtarget.value).toFixed(2) + " m/s";
-    document.getElementById("val-vx").textContent = parseFloat(sVx.value).toFixed(2) + " m/s";
-    document.getElementById("val-pitch").textContent = parseFloat(sPitch.value).toFixed(2) + " rad";
-    document.getElementById("val-joint").textContent = parseFloat(sJoint.value).toFixed(2) + " rad/s";
-
-    const algo = selectAlgo.value;
     const vTarget = parseFloat(sVtarget.value);
     const vx = parseFloat(sVx.value);
     const pitch = parseFloat(sPitch.value);
     const joint = parseFloat(sJoint.value);
 
-    // Render action bars helper
+    document.getElementById("val-vtarget").textContent = vTarget.toFixed(2) + " m/s";
+    document.getElementById("val-vx").textContent = vx.toFixed(2) + " m/s";
+    document.getElementById("val-pitch").textContent = pitch.toFixed(2) + " rad";
+    document.getElementById("val-joint").textContent = joint.toFixed(2) + " rad/s";
+
+    if (hudVtarget) hudVtarget.textContent = vTarget.toFixed(2) + " m/s";
+    if (hudVx) hudVx.textContent = currentVx.toFixed(2) + " m/s";
+    if (hudError) hudError.textContent = Math.abs(vTarget - currentVx).toFixed(2) + " m/s";
+
+    const algo = selectAlgo.value;
+
     function renderActions(actionsList, isLive = false, liveMs = 0) {
+      latestActions = actionsList;
       actionBars.innerHTML = actionsList.map((a, i) => {
-        const pct = Math.abs(a) * 50; // 0% to 50% from center
+        const pct = Math.abs(a) * 50;
         const isPos = a >= 0;
         const left = isPos ? "50%" : `${50 - pct}%`;
         const color = isPos ? "#10b981" : "#ec4899";
@@ -568,7 +585,9 @@ function initLiveInspector() {
 
       if (isLive) {
         latencyDisplay.innerHTML = `<span style="color:#10b981;font-weight:600;">LIVE API: ${liveMs.toFixed(2)} ms</span>`;
+        if (hudSource) hudSource.innerHTML = `<span style="color:#34d399">FastAPI Microservice (:8000)</span>`;
       } else {
+        if (hudSource) hudSource.textContent = "TorchScript (Client-Side Mode)";
         if (algo === "ppo") {
           latencyDisplay.textContent = "1.34 ms (TorchScript + Running Norm)";
           normDisplay.textContent = "Running Normalization Active";
@@ -582,7 +601,6 @@ function initLiveInspector() {
       }
     }
 
-    // Try Live API first if running on localhost:8000
     const rawObs = [0, vx, pitch, joint, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     fetch("http://localhost:8000/act", {
       method: "POST",
@@ -598,7 +616,6 @@ function initLiveInspector() {
       }
     })
     .catch(() => {
-      // Offline fallback simulation mirroring network response
       const velocityError = vTarget - vx;
       const baseAction = Math.tanh(velocityError * 0.45 - pitch * 0.3);
       const simulatedActions = jointNames.map((name, i) => {
@@ -613,13 +630,13 @@ function initLiveInspector() {
     });
   }
 
-  selectAlgo.addEventListener("change", () => {
+  selectAlgo?.addEventListener("change", () => {
     fetch(`http://localhost:8000/switch?algo=${selectAlgo.value}`, { method: "POST" })
       .catch(() => {})
       .finally(update);
   });
 
-  [sVtarget, sVx, sPitch, sJoint].forEach(el => el.addEventListener("input", update));
+  [sVtarget, sVx, sPitch, sJoint].forEach(el => el?.addEventListener("input", update));
 
   document.getElementById("btn-sample-obs")?.addEventListener("click", () => {
     sVx.value = (Math.random() * 5.0).toFixed(1);
@@ -633,8 +650,323 @@ function initLiveInspector() {
     sVx.value = 1.2;
     sPitch.value = 0.05;
     sJoint.value = 0.4;
+    currentVx = 1.2;
     update();
   });
 
+  // Init Kinematics Simulation Canvas
+  initKinematicCanvas(update);
+
   update();
 }
+
+// ---------------- 5. HalfCheetah Kinematic Locomotion Canvas Simulator ----------------
+function initKinematicCanvas(onStateChange) {
+  const canvas = document.getElementById("simCanvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const btnToggle = document.getElementById("btn-toggle-sim");
+  const btnStep = document.getElementById("btn-step-sim");
+  const btnReset = document.getElementById("btn-reset-sim");
+
+  const sVtarget = document.getElementById("slider-vtarget");
+  const sVx = document.getElementById("slider-vx");
+  const hudVx = document.getElementById("hud-vx");
+  const hudError = document.getElementById("hud-error");
+
+  function draw() {
+    const width = canvas.width;
+    const height = canvas.height;
+    ctx.clearRect(0, 0, width, height);
+
+    // Floor parameters
+    const floorY = height - 35;
+
+    // Draw Moving Grid Ground
+    ctx.fillStyle = "#0c1322";
+    ctx.fillRect(0, floorY, width, 35);
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, floorY);
+    ctx.lineTo(width, floorY);
+    ctx.stroke();
+
+    // Floor track markers
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.lineWidth = 1.5;
+    const markerSpacing = 50;
+    const offset = groundOffset % markerSpacing;
+    for (let x = -markerSpacing + offset; x < width + markerSpacing; x += markerSpacing) {
+      ctx.beginPath();
+      ctx.moveTo(x, floorY);
+      ctx.lineTo(x - 10, floorY + 15);
+      ctx.stroke();
+    }
+
+    // Kinematic model parameters
+    const rootX = width / 2;
+    const targetV = parseFloat(sVtarget?.value || "2.5");
+    const pitch = parseFloat(document.getElementById("slider-pitch")?.value || "0.05");
+
+    // Locomotion vertical bobbing
+    const bob = Math.sin(simTime * 8) * 6;
+    const rootY = floorY - 95 + bob;
+
+    // Cheetah Torso
+    ctx.save();
+    ctx.translate(rootX, rootY);
+    ctx.rotate(pitch);
+
+    // Torso Main Body
+    ctx.fillStyle = "#38bdf8";
+    ctx.strokeStyle = "#0284c7";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(-70, -14, 140, 28, 14);
+    ctx.fill();
+    ctx.stroke();
+
+    // Cheetah Head / Neck
+    ctx.fillStyle = "#0284c7";
+    ctx.beginPath();
+    ctx.ellipse(65, -16, 18, 12, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eye
+    ctx.fillStyle = "#f8fafc";
+    ctx.beginPath();
+    ctx.arc(72, -18, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tail
+    ctx.strokeStyle = "#0284c7";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-70, -5);
+    ctx.quadraticCurveTo(-100, -25, -95, -50);
+    ctx.stroke();
+
+    ctx.restore();
+
+    // Joint Angles from latestActions or cyclic gait
+    const gaitPhase = simTime * Math.max(2, currentVx * 2.5);
+    const bThighAngle = (latestActions[0] || Math.sin(gaitPhase)) * 0.6 + 0.3;
+    const bShinAngle = (latestActions[1] || Math.sin(gaitPhase + 1.2)) * 0.7 - 0.4;
+    const bFootAngle = (latestActions[2] || Math.cos(gaitPhase)) * 0.4 - 0.2;
+
+    const fThighAngle = (latestActions[3] || Math.sin(gaitPhase + Math.PI)) * 0.6 - 0.3;
+    const fShinAngle = (latestActions[4] || Math.sin(gaitPhase + Math.PI + 1.2)) * 0.7 + 0.4;
+    const fFootAngle = (latestActions[5] || Math.cos(gaitPhase + Math.PI)) * 0.4 + 0.2;
+
+    // Draw Back Leg
+    drawLeg(ctx, rootX - 50, rootY + 5, bThighAngle, bShinAngle, bFootAngle, "#ec4899", "#be185d");
+
+    // Draw Front Leg
+    drawLeg(ctx, rootX + 50, rootY + 5, fThighAngle, fShinAngle, fFootAngle, "#10b981", "#047857");
+
+    // Speedometer / Target Velocity Vector HUD Overlay
+    drawSpeedHUD(ctx, rootX, floorY - 140, currentVx, targetV);
+  }
+
+  function drawLeg(ctx, hipX, hipY, thighA, shinA, footA, color, jointColor) {
+    const lThigh = 38;
+    const lShin = 36;
+    const lFoot = 20;
+
+    // Knee
+    const kneeX = hipX + Math.sin(thighA) * lThigh;
+    const kneeY = hipY + Math.cos(thighA) * lThigh;
+
+    // Ankle
+    const ankleX = kneeX + Math.sin(thighA + shinA) * lShin;
+    const ankleY = kneeY + Math.cos(thighA + shinA) * lShin;
+
+    // Foot
+    const footX = ankleX + Math.cos(thighA + shinA + footA) * lFoot;
+    const footY = ankleY + Math.sin(thighA + shinA + footA) * lFoot;
+
+    // Thigh Bone
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 6;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(hipX, hipY);
+    ctx.lineTo(kneeX, kneeY);
+    ctx.stroke();
+
+    // Shin Bone
+    ctx.lineWidth = 4.5;
+    ctx.beginPath();
+    ctx.moveTo(kneeX, kneeY);
+    ctx.lineTo(ankleX, ankleY);
+    ctx.stroke();
+
+    // Foot
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(ankleX, ankleY);
+    ctx.lineTo(footX, footY);
+    ctx.stroke();
+
+    // Joints
+    ctx.fillStyle = jointColor;
+    [ [hipX, hipY], [kneeX, kneeY], [ankleX, ankleY] ].forEach(([x, y]) => {
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  function drawSpeedHUD(ctx, x, y, currV, targetV) {
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Speed vector arrow
+    const maxArrowLen = 120;
+    const arrowLen = Math.min(maxArrowLen, currV * 24);
+    const targetLen = Math.min(maxArrowLen, targetV * 24);
+
+    // Target Velocity Marker (dashed orange line)
+    ctx.strokeStyle = "#f59e0b";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(0, 15);
+    ctx.lineTo(targetLen, 15);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#f59e0b";
+    ctx.font = "600 10px JetBrains Mono, monospace";
+    ctx.fillText(`Target: ${targetV.toFixed(2)}m/s`, targetLen + 6, 19);
+
+    // Current Velocity Arrow (solid cyan)
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, 28);
+    ctx.lineTo(arrowLen, 28);
+    ctx.stroke();
+
+    // Arrowhead
+    ctx.fillStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.moveTo(arrowLen + 6, 28);
+    ctx.lineTo(arrowLen - 2, 23);
+    ctx.lineTo(arrowLen - 2, 33);
+    ctx.fill();
+
+    ctx.fillStyle = "#e0f2fe";
+    ctx.fillText(`v_x = ${currV.toFixed(2)} m/s`, arrowLen + 12, 32);
+
+    ctx.restore();
+  }
+
+  function loop() {
+    if (simRunning) {
+      simTime += 0.02;
+      const targetV = parseFloat(sVtarget?.value || "2.5");
+      // Gradually steer currentVx towards target
+      currentVx += (targetV - currentVx) * 0.04;
+      groundOffset -= currentVx * 3.5;
+
+      if (sVx) sVx.value = currentVx.toFixed(2);
+      if (hudVx) hudVx.textContent = currentVx.toFixed(2) + " m/s";
+      if (hudError) hudError.textContent = Math.abs(targetV - currentVx).toFixed(2) + " m/s";
+
+      draw();
+      simAnimId = requestAnimationFrame(loop);
+    }
+  }
+
+  btnToggle?.addEventListener("click", () => {
+    simRunning = !simRunning;
+    if (simRunning) {
+      btnToggle.textContent = "⏸ Pause Simulation";
+      btnToggle.classList.remove("btn-primary");
+      btnToggle.classList.add("btn-secondary");
+      loop();
+    } else {
+      btnToggle.textContent = "▶ Run Locomotion";
+      btnToggle.classList.add("btn-primary");
+      btnToggle.classList.remove("btn-secondary");
+      cancelAnimationFrame(simAnimId);
+    }
+  });
+
+  btnStep?.addEventListener("click", () => {
+    simTime += 0.05;
+    groundOffset -= currentVx * 4;
+    draw();
+  });
+
+  btnReset?.addEventListener("click", () => {
+    simTime = 0;
+    groundOffset = 0;
+    currentVx = 1.2;
+    if (sVx) sVx.value = "1.2";
+    if (onStateChange) onStateChange();
+    draw();
+  });
+
+  draw();
+}
+
+// ---------------- 6. API Health Check Poller ----------------
+function initApiHealthCheck() {
+  const pill = document.getElementById("api-status-pill");
+  const text = document.getElementById("api-status-text");
+
+  function checkHealth() {
+    fetch("http://localhost:8000/health", { method: "GET" })
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        if (text) text.textContent = `FastAPI :8000 (${data.algo?.toUpperCase() || "LIVE"})`;
+        if (pill) {
+          pill.style.background = "rgba(16, 185, 129, 0.15)";
+          pill.style.borderColor = "rgba(16, 185, 129, 0.4)";
+          pill.style.color = "#34d399";
+        }
+      })
+      .catch(() => {
+        if (text) text.textContent = "TorchScript (Client Mode)";
+        if (pill) {
+          pill.style.background = "rgba(99, 102, 241, 0.15)";
+          pill.style.borderColor = "rgba(99, 102, 241, 0.3)";
+          pill.style.color = "#a5b4fc";
+        }
+      });
+  }
+
+  checkHealth();
+  setInterval(checkHealth, 5000);
+}
+
+// ---------------- 7. Copy BibTeX & Toast Feedback ----------------
+function initCopyBibtex() {
+  function copyText(str) {
+    navigator.clipboard.writeText(str).then(() => {
+      const toast = document.getElementById("toast");
+      if (toast) {
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2200);
+      }
+    });
+  }
+
+  const bibtex = document.getElementById("bibtex-text");
+  document.getElementById("btn-copy-bibtex")?.addEventListener("click", () => {
+    if (bibtex) copyText(bibtex.textContent.trim());
+  });
+  document.getElementById("btn-copy-bibtex-small")?.addEventListener("click", () => {
+    if (bibtex) copyText(bibtex.textContent.trim());
+  });
+}
+
+// Hook all initializers on DOM load
+document.addEventListener("DOMContentLoaded", () => {
+  initApiHealthCheck();
+  initCopyBibtex();
+});
+
